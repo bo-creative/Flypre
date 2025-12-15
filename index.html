@@ -2,14 +2,16 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     
-    <meta name="theme-color" content="#3b82f6">
+    <!-- 初始状态栏颜色 (日间) -->
+    <meta name="theme-color" content="#3C84D6">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="飞前准">
     
-    <link rel="manifest" href="manifest.json">
+    <!-- PWA 配置 -->
+    <link rel="manifest" href="data:application/json;base64,eyJuYW1lIjoiRmx5cHJlIiwic2hvcnRfbmFtZSI6IkZseXByZSIsImRlc2NyaXB0aW9uIjoi5Y1S5o6o5pe26Ze0IOS7juWuuVxu5Y+RIiwic3RhcnRfdXJsIjoiLiIsImRpc3BsYXkiOiJzdGFuZGFsb25lIiwiYmFja2dyb3VuZF9jb2xvciI6IiMzYjgyZjYiLCJ0aGVtZV9jb2xvciI6IiMzYjgyZjYiLCJvcmllbnRhdGlvbiI6InBvcnRyYWl0IiwiaWNvbnMiOlt7InNyYyI6Imljb24tMTkyLnBuZyIsInNpemVzIjoiMTkyeDE5MiIsInR5cGUiOiJpbWFnZS9wbmciLCJwdXJwb3NlIjoiYW55IG1hc2thYmxlIn0seyJzcmMiOiJpY29uLTUxMi5wbmciLCJzaXplcyI6IjUxMng1MTIiLCJ0eXBlIjoiaW1hZ2UvcG5nIiwicHVycG9zZSI6ImFueSBtYXNrYWJsZSJ9XX0=">
     <link rel="icon" type="image/png" href="icon-192.png">
     <link rel="apple-touch-icon" href="icon-192.png">
 
@@ -64,19 +66,18 @@
             animation: flyDiagonal linear forwards;
         }
 
-        /* --- Loading 动画 --- */
-        @keyframes flyAcross {
+        /* --- Loading 动画 (FIXED: 居中穿梭) --- */
+        /* 使用 translate(-50%, -50%) 保持居中锚点，再叠加位移 */
+        @keyframes flyAcrossCenter {
             0% { 
-                left: -10%; 
-                bottom: -10%; 
+                transform: translate(-50%, -50%) translate3d(-60vmax, 60vmax, 0);
                 opacity: 0;
             }
             10% {
                 opacity: 1;
             }
             100% { 
-                left: 120%; 
-                bottom: 120%; 
+                transform: translate(-50%, -50%) translate3d(60vmax, -60vmax, 0);
                 opacity: 1;
             }
         }
@@ -128,7 +129,7 @@
 
         .glass-panel-white { background: rgba(255, 255, 255, 0.15); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); border: 1px solid rgba(255, 255, 255, 0.3); box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1); }
         
-        /* FIX: 橙色卡片 #ff6000, 70% opacity */
+        /* 橙色卡片: #ff6000, 70% opacity */
         .glass-panel-orange { 
             background: rgba(255, 96, 0, 0.7); 
             backdrop-filter: blur(8px); 
@@ -152,17 +153,24 @@
             left: 0;
             width: 100%;
             height: 100%;
-            /* 背景：使用日间渐变 */
             background: linear-gradient(to bottom, #3C84D6 0%, #4B97E2 33.33%, #69B1EA 66.66%, #7EBEE9 100%);
             z-index: 9999;
             overflow: hidden; 
             transition: opacity 0.5s ease-out;
+            /* 确保内容垂直居中 */
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
 
         .plane-fly {
             position: absolute;
-            /* 速度放慢1倍 (5s) */
-            animation: flyAcross 5s linear infinite;
+            /* 定位到屏幕中心，作为动画起点 */
+            top: 50%;
+            left: 50%;
+            /* 修正初始偏移，确保中心对齐 */
+            transform: translate(-50%, -50%);
+            animation: flyAcrossCenter 5s linear infinite;
         }
         
         body { -webkit-tap-highlight-color: transparent; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background-color: #f8fafc; }
@@ -170,16 +178,15 @@
 </head>
 <body class="text-slate-800">
     
-    <!-- FIX: Updated Loading Screen HTML -->
+    <!-- Loading Screen -->
     <div id="app-loading">
         <!-- 下层：飞机动画 (z-0) -->
-        <!-- FIX: 飞机缩小 text-[3rem] -->
         <div class="plane-fly text-[3rem] z-0 opacity-80 drop-shadow-lg" style="text-shadow: 0 10px 20px rgba(0,0,0,0.1)">
             ✈️
         </div>
 
         <!-- 上层：LOADING 文字 (z-10) -->
-        <div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-10 flex flex-col items-center">
+        <div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-10 flex flex-col items-center pointer-events-none">
             <p class="text-white text-lg font-black tracking-[0.5em] animate-pulse drop-shadow-md">LOADING</p>
             <div class="w-8 h-1 bg-white/50 mt-2 rounded-full"></div>
         </div>
@@ -265,7 +272,7 @@
             <ScriptCar emoji="🚙" size="2.7rem" duration={4} delay={2.5} reverse={true} zIndex={50} />
         </>);
 
-        // 车3 (Service) + 1辆反向 (50%处相遇)
+        // 车3 (Service) + 1辆反向
         const SceneCarsService = () => (<>
             {/* 反向车 */}
             <ScriptCar emoji="🚕" size="2.7rem" duration={4} delay={0} reverse={true} zIndex={50} />
@@ -446,7 +453,7 @@
         const App = () => {
             const [flightTime, setFlightTime] = useState('12:00');
             const [showPicker, setShowPicker] = useState(false);
-            const [version] = useState("V 1.0 (251216-005200) - 135 (Orange Tweak #2)"); 
+            const [version] = useState("V 1.0 (251216-030000) - 142 (Status Bar & Loading Fix)"); 
             
             const [showInstall, setShowInstall] = useState(false);
             
@@ -460,7 +467,7 @@
             
             const [timeOfDay, setTimeOfDay] = useState('day');
 
-            // Loading Screen Logic
+            // Loading Screen Logic (2500ms delay)
             useEffect(() => {
                 const loader = document.getElementById('app-loading');
                 if (loader) {
@@ -472,6 +479,23 @@
                     }, 2500); 
                 }
             }, []);
+
+            // FIX: Dynamic Theme Color + Body Background Logic
+            useEffect(() => {
+                const themeColors = {
+                    sunrise: '#5891D9',
+                    day: '#3C84D6',
+                    dusk: '#384189',
+                    night: '#0E1428'
+                };
+                
+                const metaThemeColor = document.querySelector('meta[name="theme-color"]');
+                if (metaThemeColor && themeColors[timeOfDay]) {
+                    metaThemeColor.setAttribute('content', themeColors[timeOfDay]);
+                    // FIX: Also update body background to prevent white status bar on bounce
+                    document.body.style.backgroundColor = themeColors[timeOfDay];
+                }
+            }, [timeOfDay]);
 
             useEffect(() => {
                 if (!flightTime) return;
