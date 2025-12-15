@@ -4,12 +4,17 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     
-    <meta name="theme-color" content="#3b82f6">
+    <!-- 初始主题色 (日间蓝) -->
+    <meta name="theme-color" content="#3C84D6">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="飞前准">
     
-    <link rel="manifest" href="manifest.json">
+    <!-- FIX: 将 Manifest 配置直接内置在 HTML 中 (Base64编码) -->
+    <!-- 这样就不再依赖外部 manifest.json 文件，且强制全屏显示，无地址栏 -->
+    <link rel="manifest" href="data:application/json;base64,eyJuYW1lIjoiRmx5cHJlIiwic2hvcnRfbmFtZSI6IkZseXByZSIsImRlc2NyaXB0aW9uIjoi5Y1S5o6o5pe26Ze0IOS7juWuuVxu5Y+RIiwic3RhcnRfdXJsIjoiLiIsImRpc3BsYXkiOiJzdGFuZGFsb25lIiwiYmFja2dyb3VuZF9jb2xvciI6IiMzYjgyZjYiLCJ0aGVtZV9jb2xvciI6IiMzYjgyZjYiLCJvcmllbnRhdGlvbiI6InBvcnRyYWl0IiwiaWNvbnMiOlt7InNyYyI6Imljb24tMTkyLnBuZyIsInNpemVzIjoiMTkyeDE5MiIsInR5cGUiOiJpbWFnZS9wbmciLCJwdXJwb3NlIjoiYW55IG1hc2thYmxlIn0seyJzcmMiOiJpY29uLTUxMi5wbmciLCJzaXplcyI6IjUxMng1MTIiLCJ0eXBlIjoiaW1hZ2UvcG5nIiwicHVycG9zZSI6ImFueSBtYXNrYWJsZSJ9XX0=">
+    
+    <!-- 这里的 icon 图片引用仍然保留，因为图片本身较大，不适合转码进 HTML -->
     <link rel="icon" type="image/png" href="icon-192.png">
     <link rel="apple-touch-icon" href="icon-192.png">
 
@@ -127,15 +132,8 @@
         .hide-scrollbar { scrollbar-width: none; }
 
         .glass-panel-white { background: rgba(255, 255, 255, 0.15); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); border: 1px solid rgba(255, 255, 255, 0.3); box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1); }
-        
-        /* FIX: 橙色卡片颜色调整 #ff6000 (255, 96, 0), 透明度 70% */
-        .glass-panel-orange { 
-            background: rgba(255, 96, 0, 0.7); 
-            backdrop-filter: blur(8px); 
-            -webkit-backdrop-filter: blur(8px); 
-            border: 1px solid rgba(255, 255, 255, 0.25); 
-            box-shadow: 0 8px 32px rgba(255, 100, 0, 0.25); 
-        }
+        /* 橙色卡片: #ff6000, 70% opacity */
+        .glass-panel-orange { background: rgba(255, 96, 0, 0.7); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); border: 1px solid rgba(255, 255, 255, 0.25); box-shadow: 0 8px 32px rgba(255, 100, 0, 0.25); }
 
         .glass-modal { 
             background: rgba(255, 255, 255, 0.85); 
@@ -170,10 +168,10 @@
 </head>
 <body class="text-slate-800">
     
-    <!-- FIX: Updated Loading Screen HTML -->
+    <!-- Loading Screen -->
     <div id="app-loading">
         <!-- 下层：飞机动画 (z-0) -->
-        <!-- FIX: 飞机缩小 text-[4rem] -> text-[3rem] -->
+        <!-- 飞机缩小 text-[4rem] -> text-[3rem] -->
         <div class="plane-fly text-[3rem] z-0 opacity-80 drop-shadow-lg" style="text-shadow: 0 10px 20px rgba(0,0,0,0.1)">
             ✈️
         </div>
@@ -277,14 +275,11 @@
         </>);
 
         // --- 飞机组 ---
-        
-        // 飞1组小飞行物改为飞机，并向右移动一点点 (-5 -> 0) -> (0 -> 10)
         const ScenePlanesGroup1 = () => (<>
             <ScriptPlane emoji="✈️" size="8rem" duration={6.4} delay={0.8} startX={-35} zIndex={10} /> 
             <ScriptPlane emoji="✈️" size="2.5rem" duration={10} delay={0} startX={10} zIndex={0} /> 
         </>);
         
-        // 飞2组小飞行物改为飞机
         const ScenePlanesGroup2 = () => (<>
             <ScriptPlane emoji="🚀" size="8rem" duration={6.4} delay={0.8} startX={-25} zIndex={10} /> 
             <ScriptPlane emoji="✈️" size="2.5rem" duration={10} delay={0} startX={5} zIndex={0} /> 
@@ -449,7 +444,7 @@
         const App = () => {
             const [flightTime, setFlightTime] = useState('12:00');
             const [showPicker, setShowPicker] = useState(false);
-            const [version] = useState("V 1.0 (251216-005200) - 135 (Orange Tweak #2)"); 
+            const [version] = useState("V 1.0 (251216-012000) - 137 (PWA Embedded Final)"); 
             
             const [showInstall, setShowInstall] = useState(false);
             
@@ -463,7 +458,7 @@
             
             const [timeOfDay, setTimeOfDay] = useState('day');
 
-            // FIX: Loading Screen Logic (2500ms delay)
+            // Loading Screen Logic
             useEffect(() => {
                 const loader = document.getElementById('app-loading');
                 if (loader) {
@@ -475,6 +470,20 @@
                     }, 2500); 
                 }
             }, []);
+
+            // Dynamic Theme Color Logic
+            useEffect(() => {
+                const themeColors = {
+                    sunrise: '#5891D9',
+                    day: '#3C84D6',
+                    dusk: '#384189',
+                    night: '#0E1428'
+                };
+                const metaThemeColor = document.querySelector('meta[name="theme-color"]');
+                if (metaThemeColor && themeColors[timeOfDay]) {
+                    metaThemeColor.setAttribute('content', themeColors[timeOfDay]);
+                }
+            }, [timeOfDay]);
 
             useEffect(() => {
                 if (!flightTime) return;
@@ -526,7 +535,6 @@
                                 
                                 {/* Emoji 云彩 */}
                                 <div className={`absolute inset-0 pointer-events-none select-none overflow-hidden z-10 transition-opacity duration-1000 ${timeOfDay === 'night' ? 'opacity-60' : 'opacity-100'}`}>
-                                    {/* FIX: Cloud Speed Reduced (15s->45s, 18s->50s, 25s->60s, 22s->75s) */}
                                     <div className="absolute animate-drift-right text-[5.4rem] leading-none text-white" style={{ bottom: '140px', left: '-20%', animationDuration: '45s', animationDelay: '-10s' }}>☁️</div>
                                     <div className="absolute animate-drift-right text-[5.4rem] leading-none text-white" style={{ bottom: '120px', left: '-30%', animationDuration: '50s', animationDelay: '-3s' }}>☁️</div>
                                     <div className="absolute animate-drift-right text-[2.7rem] leading-none text-white" style={{ bottom: '90px', left: '-10%', animationDuration: '60s', animationDelay: '-2s' }}>☁️</div>
@@ -569,7 +577,6 @@
                             <h2 className="text-xl font-bold text-slate-800 tracking-tight">全程预计耗时 : {result ? formatDuration(result.totalMinutes) : '0分钟'}</h2>
                             <div className="relative flex items-center justify-center mt-6 mb-2">
                                 <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-slate-300"></div></div>
-                                {/* FIX: 文案修改 */}
                                 <div className="relative bg-white px-3 text-sm font-bold text-slate-600 flex items-center gap-2"><span className="animate-pulse">⏱️</span> 耗时调整</div>
                             </div>
                         </div>
