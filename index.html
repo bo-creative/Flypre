@@ -4,17 +4,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     
-    <!-- 初始主题色 (日间蓝) -->
+    <!-- FIX: 初始状态栏颜色设为“日间”颜色，后续由 JS 动态接管 -->
     <meta name="theme-color" content="#3C84D6">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="飞前准">
     
-    <!-- FIX: 将 Manifest 配置直接内置在 HTML 中 (Base64编码) -->
-    <!-- 这样就不再依赖外部 manifest.json 文件，且强制全屏显示，无地址栏 -->
-    <link rel="manifest" href="data:application/json;base64,eyJuYW1lIjoiRmx5cHJlIiwic2hvcnRfbmFtZSI6IkZseXByZSIsImRlc2NyaXB0aW9uIjoi5Y1S5o6o5pe26Ze0IOS7juWuuVxu5Y+RIiwic3RhcnRfdXJsIjoiLiIsImRpc3BsYXkiOiJzdGFuZGFsb25lIiwiYmFja2dyb3VuZF9jb2xvciI6IiMzYjgyZjYiLCJ0aGVtZV9jb2xvciI6IiMzYjgyZjYiLCJvcmllbnRhdGlvbiI6InBvcnRyYWl0IiwiaWNvbnMiOlt7InNyYyI6Imljb24tMTkyLnBuZyIsInNpemVzIjoiMTkyeDE5MiIsInR5cGUiOiJpbWFnZS9wbmciLCJwdXJwb3NlIjoiYW55IG1hc2thYmxlIn0seyJzcmMiOiJpY29uLTUxMi5wbmciLCJzaXplcyI6IjUxMng1MTIiLCJ0eXBlIjoiaW1hZ2UvcG5nIiwicHVycG9zZSI6ImFueSBtYXNrYWJsZSJ9XX0=">
-    
-    <!-- 这里的 icon 图片引用仍然保留，因为图片本身较大，不适合转码进 HTML -->
+    <!-- FIX: 恢复标准的外部 manifest.json 引用，确保与您的文件匹配 -->
+    <link rel="manifest" href="manifest.json">
     <link rel="icon" type="image/png" href="icon-192.png">
     <link rel="apple-touch-icon" href="icon-192.png">
 
@@ -95,7 +92,6 @@
         /* 组件样式 */
         input[type=range] { -webkit-appearance: none; background: transparent; }
         
-        /* 把手: #4B97E2 */
         input[type=range]::-webkit-slider-thumb { 
             -webkit-appearance: none; 
             height: 24px; 
@@ -132,8 +128,15 @@
         .hide-scrollbar { scrollbar-width: none; }
 
         .glass-panel-white { background: rgba(255, 255, 255, 0.15); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); border: 1px solid rgba(255, 255, 255, 0.3); box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1); }
+        
         /* 橙色卡片: #ff6000, 70% opacity */
-        .glass-panel-orange { background: rgba(255, 96, 0, 0.7); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); border: 1px solid rgba(255, 255, 255, 0.25); box-shadow: 0 8px 32px rgba(255, 100, 0, 0.25); }
+        .glass-panel-orange { 
+            background: rgba(255, 96, 0, 0.7); 
+            backdrop-filter: blur(8px); 
+            -webkit-backdrop-filter: blur(8px); 
+            border: 1px solid rgba(255, 255, 255, 0.25); 
+            box-shadow: 0 8px 32px rgba(255, 100, 0, 0.25); 
+        }
 
         .glass-modal { 
             background: rgba(255, 255, 255, 0.85); 
@@ -171,7 +174,6 @@
     <!-- Loading Screen -->
     <div id="app-loading">
         <!-- 下层：飞机动画 (z-0) -->
-        <!-- 飞机缩小 text-[4rem] -> text-[3rem] -->
         <div class="plane-fly text-[3rem] z-0 opacity-80 drop-shadow-lg" style="text-shadow: 0 10px 20px rgba(0,0,0,0.1)">
             ✈️
         </div>
@@ -239,7 +241,6 @@
         
         // 车1 (Busy) + 2辆反向
         const SceneCarsBusy = () => (<>
-            {/* 正向车流 */}
             <ScriptCar emoji="🚕" size="2.7rem" duration={5} delay={0} />
             <ScriptCar emoji="🚗" size="2.7rem" duration={4} delay={1.5} />
             <ScriptCar emoji="🚌" size="4rem" duration={6.6} delay={3.0} />
@@ -247,7 +248,6 @@
             <ScriptCar emoji="🚙" size="2.7rem" duration={4.4} delay={6.5} />
             <ScriptCar emoji="🚗" size="2.7rem" duration={4} delay={7.8} />
             
-            {/* 反向车流 */}
             <ScriptCar emoji="🚌" size="4rem" duration={4} delay={3.5} reverse={true} zIndex={50} />
             <ScriptCar emoji="🚕" size="2.7rem" duration={3.5} delay={5.0} reverse={true} zIndex={50} />
         </>);
@@ -259,16 +259,13 @@
             <ScriptCar emoji="🚕" size="2.7rem" duration={5} delay={1} zIndex={25} />
             <ScriptCar emoji="🏎️" size="3.6rem" duration={2} delay={2.5} zIndex={30} customBottom="-2px" />
             
-            {/* 反向车 */}
             <ScriptCar emoji="🚙" size="2.7rem" duration={4} delay={2.5} reverse={true} zIndex={50} />
         </>);
 
-        // 车3 (Service) + 1辆反向 (50%处相遇)
+        // 车3 (Service) + 1辆反向
         const SceneCarsService = () => (<>
-            {/* 反向车 */}
             <ScriptCar emoji="🚕" size="2.7rem" duration={4} delay={0} reverse={true} zIndex={50} />
 
-            {/* 被追车队 */}
             <ScriptCar emoji="🚗" size="2.7rem" duration={3} delay={2.0} zIndex={20} />
             <ScriptCar emoji="🚓" size="2.7rem" duration={3} delay={2.96} zIndex={25} /> 
             <ScriptCar emoji="🚓" size="2.7rem" duration={3} delay={3.24} zIndex={25} /> 
@@ -444,7 +441,7 @@
         const App = () => {
             const [flightTime, setFlightTime] = useState('12:00');
             const [showPicker, setShowPicker] = useState(false);
-            const [version] = useState("V 1.0 (251216-012000) - 137 (PWA Embedded Final)"); 
+            const [version] = useState("V 1.0 (251216-012800) - 138 (PWA Revert & Dynamic StatusBar)"); 
             
             const [showInstall, setShowInstall] = useState(false);
             
@@ -471,14 +468,17 @@
                 }
             }, []);
 
-            // Dynamic Theme Color Logic
+            // FIX: Dynamic Theme Color Logic
             useEffect(() => {
+                // 定义四个时段对应的状态栏颜色
                 const themeColors = {
                     sunrise: '#5891D9',
                     day: '#3C84D6',
                     dusk: '#384189',
                     night: '#0E1428'
                 };
+                
+                // 找到 meta 标签并修改
                 const metaThemeColor = document.querySelector('meta[name="theme-color"]');
                 if (metaThemeColor && themeColors[timeOfDay]) {
                     metaThemeColor.setAttribute('content', themeColors[timeOfDay]);
