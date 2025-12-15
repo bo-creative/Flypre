@@ -2,18 +2,13 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <!-- FIX: 增加 viewport-fit=cover，这是让背景色填满状态栏(解决白条)的关键 -->
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     
-    <!-- 初始状态栏颜色 (日间) -->
-    <meta name="theme-color" content="#3C84D6">
-    
-    <!-- PWA 核心设置 -->
+    <meta name="theme-color" content="#3b82f6">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="飞前准">
     
-    <!-- 引用外部配置 -->
     <link rel="manifest" href="manifest.json">
     <link rel="icon" type="image/png" href="icon-192.png">
     <link rel="apple-touch-icon" href="icon-192.png">
@@ -69,23 +64,6 @@
             animation: flyDiagonal linear forwards;
         }
 
-        /* --- Loading 动画 --- */
-        @keyframes flyAcross {
-            0% { 
-                left: -10%; 
-                bottom: -10%; 
-                opacity: 0;
-            }
-            10% {
-                opacity: 1;
-            }
-            100% { 
-                left: 120%; 
-                bottom: 120%; 
-                opacity: 1;
-            }
-        }
-
         /* --- 大师级配色系统 (Final Palette) --- */
         .bg-gradient-sunrise { background: linear-gradient(to bottom, #5891D9 0%, #8FA9C6 33.33%, #DEBD8D 66.66%, #EBDB81 100%); }
         .bg-gradient-day { background: linear-gradient(to bottom, #3C84D6 0%, #4B97E2 33.33%, #69B1EA 66.66%, #7EBEE9 100%); }
@@ -132,15 +110,7 @@
         .hide-scrollbar { scrollbar-width: none; }
 
         .glass-panel-white { background: rgba(255, 255, 255, 0.15); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); border: 1px solid rgba(255, 255, 255, 0.3); box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1); }
-        
-        /* 橙色卡片: #ff6000, 70% opacity */
-        .glass-panel-orange { 
-            background: rgba(255, 96, 0, 0.7); 
-            backdrop-filter: blur(8px); 
-            -webkit-backdrop-filter: blur(8px); 
-            border: 1px solid rgba(255, 255, 255, 0.25); 
-            box-shadow: 0 8px 32px rgba(255, 100, 0, 0.25); 
-        }
+        .glass-panel-orange { background: rgba(255, 100, 0, 0.75); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); border: 1px solid rgba(255, 255, 255, 0.25); box-shadow: 0 8px 32px rgba(255, 100, 0, 0.25); }
 
         .glass-modal { 
             background: rgba(255, 255, 255, 0.85); 
@@ -150,51 +120,10 @@
             box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.1); 
         }
         
-        /* Loading Screen Styles */
-        #app-loading {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(to bottom, #3C84D6 0%, #4B97E2 33.33%, #69B1EA 66.66%, #7EBEE9 100%);
-            z-index: 9999;
-            overflow: hidden; 
-            transition: opacity 0.5s ease-out;
-        }
-
-        .plane-fly {
-            position: absolute;
-            animation: flyAcross 5s linear infinite;
-        }
-        
-        /* FIX: 确保 body/html 能够撑满屏幕，配合 viewport-fit 使用 */
-        html, body {
-            height: 100%;
-            margin: 0;
-            padding: 0;
-            -webkit-tap-highlight-color: transparent; 
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; 
-            background-color: #f8fafc;
-        }
+        body { -webkit-tap-highlight-color: transparent; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background-color: #f8fafc; }
     </style>
 </head>
 <body class="text-slate-800">
-    
-    <!-- Loading Screen -->
-    <div id="app-loading">
-        <!-- 下层：飞机动画 (z-0) -->
-        <div class="plane-fly text-[3rem] z-0 opacity-80 drop-shadow-lg" style="text-shadow: 0 10px 20px rgba(0,0,0,0.1)">
-            ✈️
-        </div>
-
-        <!-- 上层：LOADING 文字 (z-10) -->
-        <div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-10 flex flex-col items-center">
-            <p class="text-white text-lg font-black tracking-[0.5em] animate-pulse drop-shadow-md">LOADING</p>
-            <div class="w-8 h-1 bg-white/50 mt-2 rounded-full"></div>
-        </div>
-    </div>
-
     <div id="root"></div>
 
     <script type="text/babel">
@@ -251,6 +180,7 @@
         
         // 车1 (Busy) + 2辆反向
         const SceneCarsBusy = () => (<>
+            {/* 正向车流 */}
             <ScriptCar emoji="🚕" size="2.7rem" duration={5} delay={0} />
             <ScriptCar emoji="🚗" size="2.7rem" duration={4} delay={1.5} />
             <ScriptCar emoji="🚌" size="4rem" duration={6.6} delay={3.0} />
@@ -258,6 +188,7 @@
             <ScriptCar emoji="🚙" size="2.7rem" duration={4.4} delay={6.5} />
             <ScriptCar emoji="🚗" size="2.7rem" duration={4} delay={7.8} />
             
+            {/* 反向车流 */}
             <ScriptCar emoji="🚌" size="4rem" duration={4} delay={3.5} reverse={true} zIndex={50} />
             <ScriptCar emoji="🚕" size="2.7rem" duration={3.5} delay={5.0} reverse={true} zIndex={50} />
         </>);
@@ -269,12 +200,16 @@
             <ScriptCar emoji="🚕" size="2.7rem" duration={5} delay={1} zIndex={25} />
             <ScriptCar emoji="🏎️" size="3.6rem" duration={2} delay={2.5} zIndex={30} customBottom="-2px" />
             
+            {/* 反向车 */}
             <ScriptCar emoji="🚙" size="2.7rem" duration={4} delay={2.5} reverse={true} zIndex={50} />
         </>);
 
-        // 车3 (Service) + 1辆反向 (50%处相遇)
+        // 车3 (Service) + 1辆反向
         const SceneCarsService = () => (<>
+            {/* 反向车 */}
             <ScriptCar emoji="🚕" size="2.7rem" duration={4} delay={0} reverse={true} zIndex={50} />
+
+            {/* 被追车队 */}
             <ScriptCar emoji="🚗" size="2.7rem" duration={3} delay={2.0} zIndex={20} />
             <ScriptCar emoji="🚓" size="2.7rem" duration={3} delay={2.96} zIndex={25} /> 
             <ScriptCar emoji="🚓" size="2.7rem" duration={3} delay={3.24} zIndex={25} /> 
@@ -450,7 +385,7 @@
         const App = () => {
             const [flightTime, setFlightTime] = useState('12:00');
             const [showPicker, setShowPicker] = useState(false);
-            const [version] = useState("V 1.0 (251216-013800) - 140 (Viewport Cover Fix)"); 
+            const [version] = useState("V 1.0 (251215-035700) - 128 (Resend Milestone 4)"); 
             
             const [showInstall, setShowInstall] = useState(false);
             
@@ -463,33 +398,6 @@
             const [result, setResult] = useState(null);
             
             const [timeOfDay, setTimeOfDay] = useState('day');
-
-            // Loading Screen Logic
-            useEffect(() => {
-                const loader = document.getElementById('app-loading');
-                if (loader) {
-                    setTimeout(() => {
-                        loader.style.opacity = '0';
-                        setTimeout(() => {
-                            loader.style.display = 'none';
-                        }, 500);
-                    }, 2500); 
-                }
-            }, []);
-
-            // FIX: Dynamic Theme Color Logic
-            useEffect(() => {
-                const themeColors = {
-                    sunrise: '#5891D9',
-                    day: '#3C84D6',
-                    dusk: '#384189',
-                    night: '#0E1428'
-                };
-                const metaThemeColor = document.querySelector('meta[name="theme-color"]');
-                if (metaThemeColor && themeColors[timeOfDay]) {
-                    metaThemeColor.setAttribute('content', themeColors[timeOfDay]);
-                }
-            }, [timeOfDay]);
 
             useEffect(() => {
                 if (!flightTime) return;
@@ -583,6 +491,7 @@
                             <h2 className="text-xl font-bold text-slate-800 tracking-tight">全程预计耗时 : {result ? formatDuration(result.totalMinutes) : '0分钟'}</h2>
                             <div className="relative flex items-center justify-center mt-6 mb-2">
                                 <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-slate-300"></div></div>
+                                {/* FIX: 文案修改 */}
                                 <div className="relative bg-white px-3 text-sm font-bold text-slate-600 flex items-center gap-2"><span className="animate-pulse">⏱️</span> 耗时调整</div>
                             </div>
                         </div>
@@ -609,7 +518,7 @@
                                 <span>📲</span> 添加到桌面
                             </button>
 
-                            <p className="opacity-50 text-[10px] mt-1 font-mono">{version}</p>
+                            <p className="opacity-50 text-[10px] font-mono">{version}</p>
                         </div>
 
                         {showPicker && (<CustomTimePicker value={flightTime} onChange={setFlightTime} onClose={() => setShowPicker(false)} />)}
