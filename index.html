@@ -2,15 +2,17 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
+    <!-- FIX: 加入 viewport-fit=cover，这是实现“穿透状态栏”的核心开关 -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     
     <!-- 初始状态栏颜色 (日间) -->
     <meta name="theme-color" content="#3C84D6">
     <meta name="apple-mobile-web-app-capable" content="yes">
+    <!-- FIX: 必须设为 black-translucent 才能让背景图顶到状态栏下面 -->
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="飞前准">
     
-    <!-- PWA 配置 -->
+    <!-- PWA 配置 (Base64 内联) -->
     <link rel="manifest" href="data:application/json;base64,eyJuYW1lIjoiRmx5cHJlIiwic2hvcnRfbmFtZSI6IkZseXByZSIsImRlc2NyaXB0aW9uIjoi5Y1S5o6o5pe26Ze0IOS7juWuuVxu5Y+RIiwic3RhcnRfdXJsIjoiLiIsImRpc3BsYXkiOiJzdGFuZGFsb25lIiwiYmFja2dyb3VuZF9jb2xvciI6IiMzYjgyZjYiLCJ0aGVtZV9jb2xvciI6IiMzYjgyZjYiLCJvcmllbnRhdGlvbiI6InBvcnRyYWl0IiwiaWNvbnMiOlt7InNyYyI6Imljb24tMTkyLnBuZyIsInNpemVzIjoiMTkyeDE5MiIsInR5cGUiOiJpbWFnZS9wbmciLCJwdXJwb3NlIjoiYW55IG1hc2thYmxlIn0seyJzcmMiOiJpY29uLTUxMi5wbmciLCJzaXplcyI6IjUxMng1MTIiLCJ0eXBlIjoiaW1hZ2UvcG5nIiwicHVycG9zZSI6ImFueSBtYXNrYWJsZSJ9XX0=">
     <link rel="icon" type="image/png" href="icon-192.png">
     <link rel="apple-touch-icon" href="icon-192.png">
@@ -67,16 +69,16 @@
         }
 
         /* --- Loading 动画 --- */
-        @keyframes flyAcrossCenter {
+        @keyframes flyAcross {
             0% { 
-                transform: translate(-50%, -50%) translate3d(-60vmax, 60vmax, 0);
+                transform: translate3d(-20vmax, 20vmax, 0);
                 opacity: 0;
             }
             10% {
                 opacity: 1;
             }
             100% { 
-                transform: translate(-50%, -50%) translate3d(60vmax, -60vmax, 0);
+                transform: translate3d(120vmax, -120vmax, 0);
                 opacity: 1;
             }
         }
@@ -152,6 +154,7 @@
             left: 0;
             width: 100%;
             height: 100%;
+            /* 背景：使用日间渐变 */
             background: linear-gradient(to bottom, #3C84D6 0%, #4B97E2 33.33%, #69B1EA 66.66%, #7EBEE9 100%);
             z-index: 9999;
             overflow: hidden; 
@@ -163,21 +166,20 @@
 
         .plane-fly {
             position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            animation: flyAcrossCenter 5s linear infinite;
+            left: 0;
+            bottom: 0;
+            /* 速度放慢1倍 (5s), 轨迹严格45度 */
+            animation: flyAcross 5s linear infinite;
         }
         
-        /* FIX: Body 样式增强 - 增加背景色过渡，确保状态栏颜色平滑同步 */
+        /* FIX: 确保 body 和 html 能够响应 viewport-fit */
         body, html {
             height: 100%;
             margin: 0;
             padding: 0;
             -webkit-tap-highlight-color: transparent; 
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; 
-            background-color: #3C84D6; /* 默认为日间色，防止加载瞬间闪白 */
-            transition: background-color 1s ease-in-out; /* 关键：让背景色变化有动画 */
+            background-color: #f8fafc;
         }
     </style>
 </head>
@@ -186,6 +188,7 @@
     <!-- Loading Screen -->
     <div id="app-loading">
         <!-- 下层：飞机动画 (z-0) -->
+        <!-- 飞机缩小 text-[3rem] -->
         <div class="plane-fly text-[3rem] z-0 opacity-80 drop-shadow-lg" style="text-shadow: 0 10px 20px rgba(0,0,0,0.1)">
             ✈️
         </div>
@@ -253,7 +256,6 @@
         
         // 车1 (Busy) + 2辆反向
         const SceneCarsBusy = () => (<>
-            {/* 正向车流 */}
             <ScriptCar emoji="🚕" size="2.7rem" duration={5} delay={0} />
             <ScriptCar emoji="🚗" size="2.7rem" duration={4} delay={1.5} />
             <ScriptCar emoji="🚌" size="4rem" duration={6.6} delay={3.0} />
@@ -261,7 +263,6 @@
             <ScriptCar emoji="🚙" size="2.7rem" duration={4.4} delay={6.5} />
             <ScriptCar emoji="🚗" size="2.7rem" duration={4} delay={7.8} />
             
-            {/* 反向车流 */}
             <ScriptCar emoji="🚌" size="4rem" duration={4} delay={3.5} reverse={true} zIndex={50} />
             <ScriptCar emoji="🚕" size="2.7rem" duration={3.5} delay={5.0} reverse={true} zIndex={50} />
         </>);
@@ -273,16 +274,12 @@
             <ScriptCar emoji="🚕" size="2.7rem" duration={5} delay={1} zIndex={25} />
             <ScriptCar emoji="🏎️" size="3.6rem" duration={2} delay={2.5} zIndex={30} customBottom="-2px" />
             
-            {/* 反向车 */}
             <ScriptCar emoji="🚙" size="2.7rem" duration={4} delay={2.5} reverse={true} zIndex={50} />
         </>);
 
         // 车3 (Service) + 1辆反向 (50%处相遇)
         const SceneCarsService = () => (<>
-            {/* 反向车 */}
             <ScriptCar emoji="🚕" size="2.7rem" duration={4} delay={0} reverse={true} zIndex={50} />
-
-            {/* 被追车队 */}
             <ScriptCar emoji="🚗" size="2.7rem" duration={3} delay={2.0} zIndex={20} />
             <ScriptCar emoji="🚓" size="2.7rem" duration={3} delay={2.96} zIndex={25} /> 
             <ScriptCar emoji="🚓" size="2.7rem" duration={3} delay={3.24} zIndex={25} /> 
@@ -458,7 +455,7 @@
         const App = () => {
             const [flightTime, setFlightTime] = useState('12:00');
             const [showPicker, setShowPicker] = useState(false);
-            const [version] = useState("V 1.0 (251216-033000) - 143 (Layout Preservation)"); 
+            const [version] = useState("V 1.0 (251216-042000) - 144 (Immersive Main UI)"); 
             
             const [showInstall, setShowInstall] = useState(false);
             
@@ -472,7 +469,7 @@
             
             const [timeOfDay, setTimeOfDay] = useState('day');
 
-            // Loading Screen Logic
+            // Loading Screen Logic (2500ms delay)
             useEffect(() => {
                 const loader = document.getElementById('app-loading');
                 if (loader) {
@@ -485,7 +482,7 @@
                 }
             }, []);
 
-            // Dynamic Theme Color Logic
+            // FIX: Dynamic Theme Color Logic (Only for Android/Desktop, iOS uses translucent)
             useEffect(() => {
                 const themeColors = {
                     sunrise: '#5891D9',
@@ -493,15 +490,10 @@
                     dusk: '#384189',
                     night: '#0E1428'
                 };
-                
                 const metaThemeColor = document.querySelector('meta[name="theme-color"]');
-                const updateTheme = () => {
-                     if (metaThemeColor && themeColors[timeOfDay]) {
-                        metaThemeColor.setAttribute('content', themeColors[timeOfDay]);
-                        document.body.style.backgroundColor = themeColors[timeOfDay];
-                    }
+                if (metaThemeColor && themeColors[timeOfDay]) {
+                    metaThemeColor.setAttribute('content', themeColors[timeOfDay]);
                 }
-                updateTheme();
             }, [timeOfDay]);
 
             useEffect(() => {
@@ -539,12 +531,12 @@
                 <div className="min-h-screen bg-slate-50 font-sans text-slate-800 flex justify-center">
                     <div className="w-full max-w-md bg-white min-h-screen shadow-xl flex flex-col relative">
                         
-                        {/* --- 主视窗 (FIX: 高度计算与 padding 补偿，实现布局无损延伸) --- */}
+                        {/* --- 主视窗 (FIX: Added padding-top for safe area) --- */}
                         <div 
                             className="text-white px-6 relative z-10 overflow-hidden flex flex-col pb-[10.58%] transition-colors duration-1000"
                             style={{ 
-                                height: 'calc(67vw + env(safe-area-inset-top))', 
-                                paddingTop: 'env(safe-area-inset-top)' 
+                                height: 'calc(67vw + env(safe-area-inset-top))',
+                                paddingTop: 'env(safe-area-inset-top)'
                             }}
                         >
                             
@@ -554,7 +546,7 @@
                             <div className={`absolute inset-0 bg-gradient-dusk transition-opacity duration-1000 ease-in-out ${timeOfDay === 'dusk' ? 'opacity-100' : 'opacity-0'}`} />
                             <div className={`absolute inset-0 bg-gradient-night transition-opacity duration-1000 ease-in-out ${timeOfDay === 'night' ? 'opacity-100' : 'opacity-0'}`} />
 
-                            {/* 内容层 z-index 提升 */}
+                            {/* 内容层 z-index 提升 (FIX: Added padding-top compensation) */}
                             <div className="absolute inset-0 z-10 flex flex-col px-6 pb-[10.58%] pt-0" style={{ paddingTop: 'env(safe-area-inset-top)' }}>
                                 <TrafficController />
                                 
