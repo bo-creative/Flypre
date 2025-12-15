@@ -2,15 +2,18 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <!-- FIX: 增加 viewport-fit=cover，这是让背景色填满状态栏(解决白条)的关键 -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     
-    <!-- FIX: 初始状态栏颜色设为“日间”颜色，后续由 JS 动态接管 -->
+    <!-- 初始状态栏颜色 (日间) -->
     <meta name="theme-color" content="#3C84D6">
+    
+    <!-- PWA 核心设置 -->
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="飞前准">
     
-    <!-- FIX: 恢复标准的外部 manifest.json 引用，确保与您的文件匹配 -->
+    <!-- 引用外部配置 -->
     <link rel="manifest" href="manifest.json">
     <link rel="icon" type="image/png" href="icon-192.png">
     <link rel="apple-touch-icon" href="icon-192.png">
@@ -92,6 +95,7 @@
         /* 组件样式 */
         input[type=range] { -webkit-appearance: none; background: transparent; }
         
+        /* 把手: #4B97E2 */
         input[type=range]::-webkit-slider-thumb { 
             -webkit-appearance: none; 
             height: 24px; 
@@ -153,7 +157,6 @@
             left: 0;
             width: 100%;
             height: 100%;
-            /* 背景：使用日间渐变 */
             background: linear-gradient(to bottom, #3C84D6 0%, #4B97E2 33.33%, #69B1EA 66.66%, #7EBEE9 100%);
             z-index: 9999;
             overflow: hidden; 
@@ -162,11 +165,18 @@
 
         .plane-fly {
             position: absolute;
-            /* 速度放慢1倍 (5s) */
             animation: flyAcross 5s linear infinite;
         }
         
-        body { -webkit-tap-highlight-color: transparent; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background-color: #f8fafc; }
+        /* FIX: 确保 body/html 能够撑满屏幕，配合 viewport-fit 使用 */
+        html, body {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            -webkit-tap-highlight-color: transparent; 
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; 
+            background-color: #f8fafc;
+        }
     </style>
 </head>
 <body class="text-slate-800">
@@ -262,10 +272,9 @@
             <ScriptCar emoji="🚙" size="2.7rem" duration={4} delay={2.5} reverse={true} zIndex={50} />
         </>);
 
-        // 车3 (Service) + 1辆反向
+        // 车3 (Service) + 1辆反向 (50%处相遇)
         const SceneCarsService = () => (<>
             <ScriptCar emoji="🚕" size="2.7rem" duration={4} delay={0} reverse={true} zIndex={50} />
-
             <ScriptCar emoji="🚗" size="2.7rem" duration={3} delay={2.0} zIndex={20} />
             <ScriptCar emoji="🚓" size="2.7rem" duration={3} delay={2.96} zIndex={25} /> 
             <ScriptCar emoji="🚓" size="2.7rem" duration={3} delay={3.24} zIndex={25} /> 
@@ -441,7 +450,7 @@
         const App = () => {
             const [flightTime, setFlightTime] = useState('12:00');
             const [showPicker, setShowPicker] = useState(false);
-            const [version] = useState("V 1.0 (251216-012800) - 138 (PWA Revert & Dynamic StatusBar)"); 
+            const [version] = useState("V 1.0 (251216-013800) - 140 (Viewport Cover Fix)"); 
             
             const [showInstall, setShowInstall] = useState(false);
             
@@ -470,15 +479,12 @@
 
             // FIX: Dynamic Theme Color Logic
             useEffect(() => {
-                // 定义四个时段对应的状态栏颜色
                 const themeColors = {
                     sunrise: '#5891D9',
                     day: '#3C84D6',
                     dusk: '#384189',
                     night: '#0E1428'
                 };
-                
-                // 找到 meta 标签并修改
                 const metaThemeColor = document.querySelector('meta[name="theme-color"]');
                 if (metaThemeColor && themeColors[timeOfDay]) {
                     metaThemeColor.setAttribute('content', themeColors[timeOfDay]);
@@ -603,7 +609,7 @@
                                 <span>📲</span> 添加到桌面
                             </button>
 
-                            <p className="opacity-50 text-[10px] font-mono">{version}</p>
+                            <p className="opacity-50 text-[10px] mt-1 font-mono">{version}</p>
                         </div>
 
                         {showPicker && (<CustomTimePicker value={flightTime} onChange={setFlightTime} onClose={() => setShowPicker(false)} />)}
