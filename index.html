@@ -1,0 +1,532 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    
+    <meta name="theme-color" content="#3b82f6">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 rx=%2220%22 fill=%22%233b82f6%22/><text x=%2250%22 y=%2270%22 font-size=%2260%22 text-anchor=%22middle%22 fill=%22white%22 font-family=%22sans-serif%22 font-weight=%22bold%22>飞</text></svg>">
+
+    <title>飞前准</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    
+    <style>
+        /* --- 基础动画 --- */
+        @keyframes slideInUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        .animate-slide-in { animation: slideInUp 0.5s ease-out forwards; opacity: 0; }
+
+        @keyframes bigPop { 0% { transform: scale(1); } 40% { transform: scale(1.15); } 100% { transform: scale(1); } }
+        .animate-big-pop { animation: bigPop 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        .animate-fade-in { animation: fadeIn 0.2s ease-out forwards; }
+        
+        @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+        .animate-slide-up { animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+
+        @keyframes driftRight { from { transform: translateX(-150%); } to { transform: translateX(150vw); } }
+        .animate-drift-right { animation: driftRight linear infinite; }
+
+        /* --- 交通动画 --- */
+        @keyframes drivePass {
+            0% { transform: translateX(0); }
+            100% { transform: translateX(-250vw); } 
+        }
+        .animate-drive-pass {
+            animation: drivePass linear forwards;
+            will-change: transform;
+        }
+
+        @keyframes drivePassReverse {
+            0% { transform: translateX(0); }
+            100% { transform: translateX(170vw); } 
+        }
+        .animate-drive-pass-reverse {
+            animation: drivePassReverse linear forwards;
+            will-change: transform;
+        }
+
+        @keyframes flyDiagonal {
+            0% { transform: translate(0, 0); opacity: 0; }
+            5% { opacity: 1; }
+            100% { transform: translate(150vh, -150vh); opacity: 1; } 
+        }
+        .animate-fly-diag {
+            animation: flyDiagonal linear forwards;
+        }
+
+        /* --- 大师级配色系统 (Final Palette) --- */
+        .bg-gradient-sunrise { background: linear-gradient(to bottom, #5891D9 0%, #8FA9C6 33.33%, #DEBD8D 66.66%, #EBDB81 100%); }
+        .bg-gradient-day { background: linear-gradient(to bottom, #3C84D6 0%, #4B97E2 33.33%, #69B1EA 66.66%, #7EBEE9 100%); }
+        .bg-gradient-dusk { background: linear-gradient(to bottom, #384189 0%, #745885 33.33%, #B96D65 66.66%, #E07F42 100%); }
+        .bg-gradient-night { background: linear-gradient(to bottom, #0E1428 0%, #0E1B41 33.33%, #102E5D 66.66%, #214375 100%); }
+
+        /* 组件样式 */
+        input[type=range] { -webkit-appearance: none; background: transparent; }
+        
+        /* 把手: #4B97E2 */
+        input[type=range]::-webkit-slider-thumb { 
+            -webkit-appearance: none; 
+            height: 24px; 
+            width: 24px; 
+            border-radius: 50%; 
+            background: #4B97E2 !important; 
+            border: 4px solid #fff; 
+            box-shadow: 0 2px 4px rgba(0,0,0,0.15); 
+            margin-top: -9px; 
+            cursor: pointer; 
+            position: relative; 
+            z-index: 50; 
+            transition: transform 0.1s; 
+        }
+        
+        input[type=range]::-moz-range-thumb {
+            height: 24px; 
+            width: 24px; 
+            border-radius: 50%; 
+            background: #4B97E2 !important; 
+            border: 4px solid #fff; 
+            box-shadow: 0 2px 4px rgba(0,0,0,0.15); 
+            cursor: pointer; 
+            position: relative; 
+            z-index: 50; 
+        }
+
+        input[type=range]:active::-webkit-slider-thumb { transform: scale(1.1); }
+        
+        input[type=range]::-webkit-slider-runnable-track { width: 100%; height: 6px; cursor: pointer; background: transparent; border-radius: 3px; }
+        input[type=range]::-moz-range-track { width: 100%; height: 6px; cursor: pointer; background: transparent; border-radius: 3px; }
+
+        .hide-scrollbar::-webkit-scrollbar { display: none; }
+        .hide-scrollbar { scrollbar-width: none; }
+
+        .glass-panel-white { background: rgba(255, 255, 255, 0.15); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); border: 1px solid rgba(255, 255, 255, 0.3); box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1); }
+        .glass-panel-orange { background: rgba(255, 100, 0, 0.75); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); border: 1px solid rgba(255, 255, 255, 0.25); box-shadow: 0 8px 32px rgba(255, 100, 0, 0.25); }
+
+        /* PWA 弹窗专用的高透白色毛玻璃 */
+        .glass-modal { 
+            background: rgba(255, 255, 255, 0.85); 
+            backdrop-filter: blur(16px); 
+            -webkit-backdrop-filter: blur(16px); 
+            border: 1px solid rgba(255, 255, 255, 0.5); 
+            box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.1); 
+        }
+        
+        body { -webkit-tap-highlight-color: transparent; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background-color: #f8fafc; }
+    </style>
+</head>
+<body class="text-slate-800">
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect, useRef, useMemo } = React;
+
+        const CarIcon = () => <div className="text-xl leading-none transform transition-transform group-hover:scale-110">🚖</div>;
+        const LuggageIcon = () => <div className="text-xl leading-none transform transition-transform group-hover:scale-110">🧳</div>;
+        const PoliceIcon = () => <div className="text-xl leading-none transform transition-transform group-hover:scale-110">👮</div>;
+        const BurgerIcon = () => <div className="text-xl leading-none transform transition-transform group-hover:scale-110">🍔</div>;
+        const WalkIcon = () => <div className="text-xl leading-none transform transition-transform group-hover:scale-110">🚶</div>;
+        const TakeoffIcon = () => <div className="text-xl leading-none transform transition-transform group-hover:scale-110">🛫</div>;
+
+        // --- PWA Icons ---
+        const IconShare = () => (
+            <svg className="w-4 h-4 inline-block mx-1 text-slate-500 align-text-bottom mb-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg>
+        );
+        const IconPlus = () => (
+            <svg className="w-4 h-4 inline-block mx-1 text-slate-500 align-text-bottom mb-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+        );
+
+        // --- 交通系统 ---
+        const ScriptCar = ({ emoji, duration, delay, size = '2.7rem', zIndex = 20, customBottom, reverse = false }) => {
+            const animationClass = reverse ? "animate-drive-pass-reverse" : "animate-drive-pass";
+            const initialLeft = reverse ? "-20vw" : "100vw";
+            
+            return (
+                <div 
+                    className={`absolute ${animationClass}`} 
+                    style={{ 
+                        bottom: customBottom || '-1px', 
+                        left: initialLeft, 
+                        width: 'auto', 
+                        fontSize: size, 
+                        lineHeight: '1', 
+                        animationDuration: `${duration}s`, 
+                        animationDelay: `${delay}s`, 
+                        zIndex: zIndex 
+                    }}
+                >
+                    <div style={{ transform: reverse ? 'scaleX(-1)' : 'none', display: 'inline-block' }}>
+                        {emoji}
+                    </div>
+                </div>
+            );
+        };
+        
+        const ScriptPlane = ({ emoji, duration, delay, startX, size, zIndex, mirror = false }) => (
+            <div className="absolute animate-fly-diag" style={{ bottom: '-30vh', left: `${startX}%`, fontSize: size, lineHeight: '1', animationDuration: `${duration}s`, animationDelay: `${delay}s`, zIndex: zIndex }}>
+                <div style={{ transform: mirror ? 'scaleX(-1)' : 'none', display: 'inline-block' }}>{emoji}</div>
+            </div>
+        );
+
+        // --- 汽车组 ---
+        
+        // 车1 (Busy) + 2辆反向
+        const SceneCarsBusy = () => (<>
+            {/* 正向车流 */}
+            <ScriptCar emoji="🚕" size="2.7rem" duration={5} delay={0} />
+            <ScriptCar emoji="🚗" size="2.7rem" duration={4} delay={1.5} />
+            <ScriptCar emoji="🚌" size="4rem" duration={6.6} delay={3.0} />
+            <ScriptCar emoji="🚎" size="4rem" duration={6.6} delay={4.0} />
+            <ScriptCar emoji="🚙" size="2.7rem" duration={4.4} delay={6.5} />
+            <ScriptCar emoji="🚗" size="2.7rem" duration={4} delay={7.8} />
+            
+            {/* 反向车流 */}
+            <ScriptCar emoji="🚌" size="4rem" duration={4} delay={3.5} reverse={true} zIndex={50} />
+            <ScriptCar emoji="🚕" size="2.7rem" duration={3.5} delay={5.0} reverse={true} zIndex={50} />
+        </>);
+
+        // 车2 (Race) + 1辆反向
+        const SceneCarsRace = () => (<>
+            <ScriptCar emoji="🚌" size="4rem" duration={6.6} delay={4} zIndex={10} />
+            <ScriptCar emoji="🛺" size="2.7rem" duration={20} delay={0} zIndex={15} />   
+            <ScriptCar emoji="🚕" size="2.7rem" duration={5} delay={1} zIndex={25} />
+            <ScriptCar emoji="🏎️" size="3.6rem" duration={2} delay={2.5} zIndex={30} customBottom="-2px" />
+            
+            {/* 反向车 */}
+            <ScriptCar emoji="🚙" size="2.7rem" duration={4} delay={2.5} reverse={true} zIndex={50} />
+        </>);
+
+        // 车3 (Service) + 1辆反向
+        const SceneCarsService = () => (<>
+            {/* 反向车 */}
+            <ScriptCar emoji="🚕" size="2.7rem" duration={4} delay={0} reverse={true} zIndex={50} />
+
+            {/* 被追车队 */}
+            <ScriptCar emoji="🚗" size="2.7rem" duration={3} delay={2.0} zIndex={20} />
+            <ScriptCar emoji="🚓" size="2.7rem" duration={3} delay={2.96} zIndex={25} /> 
+            <ScriptCar emoji="🚓" size="2.7rem" duration={3} delay={3.24} zIndex={25} /> 
+        </>);
+
+        // --- 飞机组 ---
+        const ScenePlanesGroup1 = () => (<>
+            <ScriptPlane emoji="✈️" size="8rem" duration={6.4} delay={0.8} startX={-35} zIndex={10} /> 
+            <ScriptPlane emoji="✈️" size="2.5rem" duration={10} delay={0} startX={10} zIndex={0} /> 
+        </>);
+        
+        const ScenePlanesGroup2 = () => (<>
+            <ScriptPlane emoji="🚀" size="8rem" duration={6.4} delay={0.8} startX={-25} zIndex={10} /> 
+            <ScriptPlane emoji="✈️" size="2.5rem" duration={10} delay={0} startX={5} zIndex={0} /> 
+        </>);
+
+        const ScenePlanesGroup3 = () => (<>
+            <ScriptPlane emoji="🛸" size="8rem" duration={6.4} delay={0.8} startX={-10} zIndex={10} mirror={true} /> 
+            <ScriptPlane emoji="✈️" size="2.5rem" duration={10} delay={0} startX={-35} zIndex={0} /> 
+        </>);
+
+        const TrafficController = () => {
+            const [scene, setScene] = useState(0); 
+            useEffect(() => { const timer = setInterval(() => { setScene(prev => (prev + 1) % 6); }, 10000); return () => clearInterval(timer); }, []);
+            return (
+                <div className="absolute inset-0 pointer-events-none overflow-hidden z-0">
+                    {scene === 0 && <SceneCarsBusy />}
+                    {scene === 1 && <ScenePlanesGroup1 />}
+                    {scene === 2 && <SceneCarsRace />}
+                    {scene === 3 && <ScenePlanesGroup2 />}
+                    {scene === 4 && <SceneCarsService />}
+                    {scene === 5 && <ScenePlanesGroup3 />}
+                </div>
+            );
+        };
+
+        // --- 逻辑组件 ---
+        const timeToMinutes = (timeStr) => { if (!timeStr) return 0; const [h, m] = timeStr.split(':').map(Number); return isNaN(h) ? 0 : h * 60 + m; };
+        const minutesToTime = (totalMinutes) => { let m = Math.round(totalMinutes); while (m < 0) m += 1440; m = m % 1440; const hours = Math.floor(m / 60); const mins = m % 60; return `${hours.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}`; };
+        
+        const formatDuration = (totalMins) => {
+            if (!totalMins) return '0分钟';
+            const h = Math.floor(totalMins / 60);
+            const m = totalMins % 60;
+            if (h === 0) return `${m}分钟`;
+            return `${h}小时 ${m}分钟`;
+        };
+
+        const RollingTime = ({ timeStr, className }) => {
+            const [displayTime, setDisplayTime] = useState(timeStr);
+            const [isPopping, setIsPopping] = useState(false);
+            const prevTimeRef = useRef(timeStr);
+            const requestRef = useRef();
+            useEffect(() => {
+                if (prevTimeRef.current === timeStr) return;
+                if (!prevTimeRef.current || prevTimeRef.current === '--:--') { setDisplayTime(timeStr); prevTimeRef.current = timeStr; return; }
+                const startMins = timeToMinutes(prevTimeRef.current); const endMins = timeToMinutes(timeStr); if (startMins === endMins) return;
+                const duration = 500; const startTime = performance.now();
+                const animate = (currentTime) => {
+                    const elapsed = currentTime - startTime; const progress = Math.min(elapsed / duration, 1); const ease = 1 - Math.pow(1 - progress, 4);
+                    const currentVal = startMins + (endMins - startMins) * ease; setDisplayTime(minutesToTime(currentVal));
+                    if (progress < 1) { requestRef.current = requestAnimationFrame(animate); } 
+                    else { setDisplayTime(timeStr); prevTimeRef.current = timeStr; setIsPopping(true); setTimeout(() => setIsPopping(false), 400); }
+                };
+                requestRef.current = requestAnimationFrame(animate); return () => cancelAnimationFrame(requestRef.current);
+            }, [timeStr]);
+            return (<div className={`${className} inline-block transition-transform ${isPopping ? 'animate-big-pop' : ''}`}>{displayTime}</div>);
+        };
+
+        const CustomTimePicker = ({ value, onChange, onClose }) => {
+            const [selectedHour, setSelectedHour] = useState(value.split(':')[0]);
+            const [selectedMinute, setSelectedMinute] = useState(value.split(':')[1]);
+            const hours = Array.from({ length: 24 }, (_, i) => i.toString().padStart(2, '0'));
+            const minutes = Array.from({ length: 60 }, (_, i) => i.toString().padStart(2, '0'));
+            const hourListRef = useRef(null); const minuteListRef = useRef(null);
+
+            // FIX: Lock body scroll when modal is open
+            useEffect(() => {
+                document.body.style.overflow = 'hidden';
+                return () => {
+                    document.body.style.overflow = '';
+                };
+            }, []);
+
+            useEffect(() => {
+                const hEl = document.getElementById(`hour-${selectedHour}`); const mEl = document.getElementById(`minute-${selectedMinute}`);
+                if (hEl && hourListRef.current) hourListRef.current.scrollTop = hEl.offsetTop - hourListRef.current.offsetTop - 100;
+                if (mEl && minuteListRef.current) minuteListRef.current.scrollTop = mEl.offsetTop - minuteListRef.current.offsetTop - 100;
+            }, []);
+            return (
+                <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center bg-black/50 backdrop-blur-sm animate-fade-in" onClick={onClose}>
+                    <div className="bg-white w-full sm:w-96 h-[50vh] sm:h-[60vh] rounded-t-3xl sm:rounded-3xl shadow-2xl flex flex-col overflow-hidden" onClick={(e) => e.stopPropagation()}>
+                        <div className="flex justify-between items-center px-6 py-5 border-b border-slate-100 bg-slate-50">
+                            <button onClick={onClose} className="text-slate-400 text-lg font-medium px-2 py-1 active:opacity-70 transition-opacity">取消</button>
+                            <span className="text-lg font-bold text-slate-700">选择起飞时间</span>
+                            <button onClick={() => { onChange(`${selectedHour}:${selectedMinute}`); onClose(); }} className="text-white text-lg font-bold bg-[#3b82f6] px-5 py-1.5 rounded-xl shadow-md active:scale-95 transition-all">确定</button>
+                        </div>
+                        <div className="flex-1 flex overflow-hidden relative">
+                            <div className="flex-1 flex flex-col h-full border-r border-slate-50">
+                                <div className="text-center text-base text-slate-400 py-3 font-bold bg-white z-10">时</div>
+                                <div className="flex-1 overflow-y-auto hide-scrollbar scroll-smooth pb-[50%] overscroll-contain" ref={hourListRef}>
+                                    <div className="h-[40%]"></div>{hours.map(h => (<div key={h} id={`hour-${h}`} onClick={() => setSelectedHour(h)} className={`py-2 text-center cursor-pointer transition-all duration-200 select-none ${selectedHour === h ? 'text-4xl font-black text-[#3b82f6]' : 'text-2xl text-slate-300 hover:text-slate-400'}`}>{h}</div>))}<div className="h-[40%]"></div>
+                                </div>
+                            </div>
+                            <div className="flex-1 flex flex-col h-full">
+                                <div className="text-center text-base text-slate-400 py-3 font-bold bg-white z-10">分</div>
+                                <div className="flex-1 overflow-y-auto hide-scrollbar scroll-smooth pb-[50%] overscroll-contain" ref={minuteListRef}>
+                                    <div className="h-[40%]"></div>{minutes.map(m => (<div key={m} id={`minute-${m}`} onClick={() => setSelectedMinute(m)} className={`py-2 text-center cursor-pointer transition-all duration-200 select-none ${selectedMinute === m ? 'text-4xl font-black text-[#3b82f6]' : 'text-2xl text-slate-300 hover:text-slate-400'}`}>{m}</div>))}<div className="h-[40%]"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+        const SliderRow = ({ icon, title, value, setValue, min, max, leftLabel, rightLabel, index }) => (
+            <div className="py-4 animate-slide-in group" style={{ animationDelay: `${index * 100}ms` }}>
+                <div className="flex justify-between items-center mb-3">
+                    <div className="flex items-center gap-3 font-medium text-slate-800">{icon}<span className="text-base font-bold">{title}</span></div>
+                    <div className="font-bold text-slate-800 text-lg tabular-nums">{value} <span className="text-sm font-normal text-slate-500">分钟</span></div>
+                </div>
+                <div className="relative h-6 flex items-center mb-1">
+                    <input type="range" min={min} max={max} step="5" value={value} onChange={(e) => setValue(Number(e.target.value))} className="w-full z-10" />
+                    <div className="absolute w-full h-[6px] bg-[#e2e8f0] rounded-full pointer-events-none top-1/2 transform -translate-y-1/2 left-0 z-0"></div>
+                    <div className="absolute h-[6px] rounded-l-full pointer-events-none top-1/2 transform -translate-y-1/2 left-0 transition-all duration-75 z-0" 
+                         style={{ width: `${((value - min) / (max - min)) * 100}%`, backgroundColor: '#7EBEE9' }}></div>
+                </div>
+                <div className="flex justify-between text-[10px] sm:text-xs text-slate-400 leading-tight"><span className="font-bold text-slate-700">{leftLabel}</span><span className="text-slate-400 max-w-[50%] text-right">{rightLabel}</span></div>
+            </div>
+        );
+
+        // --- PWA 安装引导组件 ---
+        const InstallGuideModal = ({ isOpen, onClose }) => {
+            const [isDesktop, setIsDesktop] = useState(false);
+            useEffect(() => {
+                const userAgent = navigator.userAgent || navigator.vendor || window.opera;
+                if (!/android|iPad|iPhone|iPod/i.test(userAgent)) setIsDesktop(true);
+            }, []);
+
+            if (!isOpen) return null;
+
+            return (
+                <div className="fixed inset-0 z-[100] flex flex-col justify-end sm:justify-center items-center" style={{zIndex: 9999}}>
+                    <div className="absolute inset-0 bg-black/30 backdrop-blur-[2px] animate-fade-in" onClick={onClose}></div>
+                    <div className="relative glass-modal w-full max-w-sm sm:rounded-3xl rounded-t-3xl overflow-hidden animate-slide-up p-6">
+                        <div className="flex justify-between items-center mb-6">
+                            <h3 className="text-lg font-bold text-slate-800 flex items-center gap-2">📲 添加到桌面</h3>
+                            <button onClick={onClose} className="p-2 bg-white/50 hover:bg-white/80 rounded-full text-slate-500 transition-colors"><svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg></button>
+                        </div>
+                        <div className="space-y-4 text-base text-slate-700 leading-relaxed font-medium">
+                            {!isDesktop ? (
+                                <>
+                                    <p>1. 使用浏览器打开</p>
+                                    <p>2. 找到点击“共享” <IconShare/></p>
+                                    <p>3. 找到点击“添加到主屏幕” <IconPlus/></p>
+                                </>
+                            ) : (
+                                <div className="text-center py-6 text-slate-500 bg-white/40 rounded-2xl border border-white/50">
+                                    <p className="mb-2 font-medium">请使用手机访问体验</p>
+                                    <p className="text-xs opacity-75">iOS Safari 或 Android Chrome 体验最佳</p>
+                                </div>
+                            )}
+                        </div>
+                        <div className="mt-6 border-t border-slate-200/50 text-center py-3">
+                            <p className="text-sm text-slate-400 font-medium">像原生APP一样 随时使用飞前准</p>
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+        const App = () => {
+            const [flightTime, setFlightTime] = useState('12:00');
+            const [showPicker, setShowPicker] = useState(false);
+            const [version] = useState("V 1.0 (251215-110000) - 126 (Picker Scroll Lock)"); 
+            
+            const [showInstall, setShowInstall] = useState(false);
+            
+            const [commuteMinutes, setCommuteMinutes] = useState(50);
+            const [checkInMinutes, setCheckInMinutes] = useState(0);
+            const [securityMinutes, setSecurityMinutes] = useState(20);
+            const [diningMinutes, setDiningMinutes] = useState(20); 
+            const [walkMinutes, setWalkMinutes] = useState(10);
+            const [boardingBuffer, setBoardingBuffer] = useState(40);
+            const [result, setResult] = useState(null);
+            
+            const [timeOfDay, setTimeOfDay] = useState('day');
+
+            useEffect(() => {
+                if (!flightTime) return;
+                const [hours, minutes] = flightTime.split(':').map(Number);
+                const takeoffDate = new Date(); takeoffDate.setHours(hours, minutes, 0, 0);
+                const gateArrival = new Date(takeoffDate.getTime() - boardingBuffer * 60000);
+                const startWalk = new Date(gateArrival.getTime() - walkMinutes * 60000);
+                const finishSecurity = new Date(startWalk.getTime() - diningMinutes * 60000);
+                const finishCheckIn = new Date(finishSecurity.getTime() - securityMinutes * 60000);
+                const arriveAirport = new Date(finishCheckIn.getTime() - checkInMinutes * 60000);
+                const leaveHome = new Date(arriveAirport.getTime() - commuteMinutes * 60000);
+                const totalMinutes = commuteMinutes + checkInMinutes + securityMinutes + diningMinutes + walkMinutes + boardingBuffer;
+                
+                setResult({ leaveHome, arriveAirport, finishCheckIn, finishSecurity, startWalk, gateArrival, takeoffDate, totalMinutes });
+
+                const h = leaveHome.getHours();
+                if (h >= 5 && h < 8) {
+                    setTimeOfDay('sunrise');
+                } else if (h >= 8 && h < 17) {
+                    setTimeOfDay('day');
+                } else if (h >= 17 && h < 19) {
+                    setTimeOfDay('dusk');
+                } else {
+                    setTimeOfDay('night');
+                }
+
+            }, [flightTime, commuteMinutes, checkInMinutes, securityMinutes, diningMinutes, walkMinutes, boardingBuffer]);
+
+            const formatTime = (date) => date ? date.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit', hour12: false }) : '--:--';
+            
+            const isNightModeText = timeOfDay === 'night';
+
+            return (
+                <div className="min-h-screen bg-slate-50 font-sans text-slate-800 flex justify-center">
+                    <div className="w-full max-w-md bg-white min-h-screen shadow-xl flex flex-col relative">
+                        
+                        {/* --- 主视窗 --- */}
+                        <div className="text-white px-6 relative z-10 overflow-hidden aspect-[100/67] flex flex-col pb-[10.58%]">
+                            
+                            {/* --- 四层背景叠放，利用 opacity 实现无缝切换 --- */}
+                            <div className={`absolute inset-0 bg-gradient-sunrise transition-opacity duration-1000 ease-in-out ${timeOfDay === 'sunrise' ? 'opacity-100' : 'opacity-0'}`} />
+                            <div className={`absolute inset-0 bg-gradient-day transition-opacity duration-1000 ease-in-out ${timeOfDay === 'day' ? 'opacity-100' : 'opacity-0'}`} />
+                            <div className={`absolute inset-0 bg-gradient-dusk transition-opacity duration-1000 ease-in-out ${timeOfDay === 'dusk' ? 'opacity-100' : 'opacity-0'}`} />
+                            <div className={`absolute inset-0 bg-gradient-night transition-opacity duration-1000 ease-in-out ${timeOfDay === 'night' ? 'opacity-100' : 'opacity-0'}`} />
+
+                            {/* 内容层 z-index 提升 */}
+                            <div className="absolute inset-0 z-10 flex flex-col px-6 pb-[10.58%] pt-0">
+                                <TrafficController />
+                                
+                                {/* Emoji 云彩 */}
+                                <div className={`absolute inset-0 pointer-events-none select-none overflow-hidden z-10 transition-opacity duration-1000 ${timeOfDay === 'night' ? 'opacity-60' : 'opacity-100'}`}>
+                                    <div className="absolute animate-drift-right text-[5.4rem] leading-none text-white" style={{ bottom: '140px', left: '-20%', animationDuration: '15s', animationDelay: '-10s' }}>☁️</div>
+                                    <div className="absolute animate-drift-right text-[5.4rem] leading-none text-white" style={{ bottom: '120px', left: '-30%', animationDuration: '18s', animationDelay: '-3s' }}>☁️</div>
+                                    <div className="absolute animate-drift-right text-[2.7rem] leading-none text-white" style={{ bottom: '90px', left: '-10%', animationDuration: '25s', animationDelay: '-2s' }}>☁️</div>
+                                    <div className="absolute animate-drift-right text-[2.7rem] leading-none text-white" style={{ bottom: '100px', left: '-40%', animationDuration: '22s', animationDelay: '-15s' }}>☁️</div>
+                                </div>
+
+                                {/* 顶部垫片：A */}
+                                <div className="flex-1 w-full min-h-0"></div>
+
+                                {/* --- Title & Slogan --- */}
+                                <div className="flex flex-col justify-center items-start relative z-30 select-none">
+                                    <h1 className="text-4xl font-bold tracking-normal leading-none font-sans flex items-baseline">
+                                        飞前准<span className="text-6xl ml-[-2px]">。</span>
+                                    </h1>
+                                    <p className="text-blue-100 text-base tracking-wide opacity-90 leading-none mt-1">倒推时间 从容出发</p>
+                                </div>
+
+                                {/* 底部垫片：B */}
+                                <div className="flex-1 w-full min-h-0"></div>
+
+                                <div className="flex items-stretch w-full relative z-30 shrink-0">
+                                    <div className="flex-1 glass-panel-white rounded-3xl p-2 aspect-[4/3] flex flex-col items-center justify-center shadow-lg relative active:scale-95 transition-transform group cursor-pointer" onClick={() => setShowPicker(true)}>
+                                        <div className={`text-sm mb-2 flex items-center justify-center gap-1 transition-colors duration-500 ${isNightModeText ? 'text-blue-100' : 'text-slate-600'}`}>
+                                            起飞时间 <span className={`text-[10px] bg-white px-1.5 py-0.5 rounded font-medium shadow-sm ${isNightModeText ? 'text-indigo-600' : 'text-[#3b82f6]'}`}>修改</span>
+                                        </div>
+                                        <div className={`text-5xl font-bold font-sans tracking-tight transition-colors duration-500 group-active:scale-105 transform ${isNightModeText ? 'text-white' : 'text-slate-900'}`}>
+                                            <RollingTime timeStr={flightTime} />
+                                        </div>
+                                    </div>
+                                    <div className="w-12 flex items-center justify-center text-white opacity-80 shrink-0"><svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z" /></svg></div>
+                                    <div className="flex-1 glass-panel-orange rounded-3xl p-2 aspect-[4/3] flex flex-col items-center justify-center shadow-lg">
+                                        <span className="text-sm text-white mb-2 opacity-90">出门时间</span>
+                                        <div className="text-5xl font-bold font-sans tracking-tight text-white"><RollingTime timeStr={result ? formatTime(result.leaveHome) : '--:--'} /></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="text-center mt-8 px-6 mb-4 animate-slide-in" style={{animationDelay: '100ms'}}>
+                            <h2 className="text-xl font-bold text-slate-800 tracking-tight">全程预计耗时 : {result ? formatDuration(result.totalMinutes) : '0分钟'}</h2>
+                            <div className="relative flex items-center justify-center mt-6 mb-2">
+                                <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-slate-300"></div></div>
+                                <div className="relative bg-white px-3 text-sm font-bold text-slate-600 flex items-center gap-2"><span className="animate-pulse">⏱️</span> 耗时调整</div>
+                            </div>
+                        </div>
+
+                        <div className="flex-1 px-6 pb-8 space-y-1 overflow-y-auto">
+                            <SliderRow index={1} icon={<CarIcon />} title="前往机场耗时" value={commuteMinutes} setValue={setCommuteMinutes} min={10} max={180} leftLabel={`${result ? formatTime(result.arriveAirport) : '--'} 到达机场`} rightLabel="请提前查询路况" />
+                            <SliderRow index={2} icon={<LuggageIcon />} title="值机/托运耗时" value={checkInMinutes} setValue={setCheckInMinutes} min={0} max={120} leftLabel={`${result ? formatTime(result.finishCheckIn) : '--'} 值机/托运 完成`} rightLabel="手机值机且无托运可设为0" />
+                            <SliderRow index={3} icon={<PoliceIcon />} title="安检/通关耗时" value={securityMinutes} setValue={setSecurityMinutes} min={10} max={120} leftLabel={`${result ? formatTime(result.finishSecurity) : '--'} 安检/通关 完成`} rightLabel="国际出发通关需酌情增加" />
+                            <SliderRow index={4} icon={<BurgerIcon />} title="吃饭/休息室停留" value={diningMinutes} setValue={setDiningMinutes} min={0} max={180} leftLabel={`${result ? formatTime(result.startWalk) : '--'} 向登机口出发`} rightLabel="根据登机口距离灵活调整" />
+                            <SliderRow index={5} icon={<WalkIcon />} title="步行至登机口时间" value={walkMinutes} setValue={setWalkMinutes} min={5} max={60} leftLabel={`${result ? formatTime(result.gateArrival) : '--'} 抵达登机口`} rightLabel="根据机场大小及是否使用休息室设定" />
+                            <SliderRow index={6} icon={<TakeoffIcon />} title="登机至起飞时间" value={boardingBuffer} setValue={setBoardingBuffer} min={20} max={60} leftLabel={`${flightTime} 起飞`} rightLabel="通常登机时间为起飞前40~50分钟" />
+                        </div>
+
+                        <div className="text-center pb-8 pt-4 px-6 text-xs text-slate-400 leading-relaxed font-medium animate-slide-in" style={{animationDelay: '700ms'}}>
+                            <p>计算结果仅供参考，请预留充足时间</p>
+                            <p className="mb-2">祝你旅途愉快！</p>
+                            <div className="border-t border-slate-200 w-20 mx-auto my-3"></div>
+                            <p className="opacity-75">Designed & Developed by Bo with Gemini.</p>
+                            
+                            <button 
+                                onClick={() => setShowInstall(true)}
+                                className="my-3 bg-white/50 hover:bg-white text-slate-500 font-medium py-1.5 px-3 rounded-lg border border-slate-200 transition-all active:scale-95 flex items-center justify-center gap-2 text-xs mx-auto shadow-sm"
+                            >
+                                <span>📲</span> 添加到桌面
+                            </button>
+
+                            <p className="opacity-50 text-[10px] font-mono">{version}</p>
+                        </div>
+
+                        {showPicker && (<CustomTimePicker value={flightTime} onChange={setFlightTime} onClose={() => setShowPicker(false)} />)}
+                        
+                        <InstallGuideModal isOpen={showInstall} onClose={() => setShowInstall(false)} />
+                    </div>
+                </div>
+            );
+        };
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>
