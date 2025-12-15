@@ -64,6 +64,23 @@
             animation: flyDiagonal linear forwards;
         }
 
+        /* --- Loading 动画 --- */
+        @keyframes flyAcross {
+            0% { 
+                left: -10%; 
+                bottom: -10%; 
+                opacity: 0;
+            }
+            10% {
+                opacity: 1;
+            }
+            100% { 
+                left: 120%; 
+                bottom: 120%; 
+                opacity: 1;
+            }
+        }
+
         /* --- 大师级配色系统 (Final Palette) --- */
         .bg-gradient-sunrise { background: linear-gradient(to bottom, #5891D9 0%, #8FA9C6 33.33%, #DEBD8D 66.66%, #EBDB81 100%); }
         .bg-gradient-day { background: linear-gradient(to bottom, #3C84D6 0%, #4B97E2 33.33%, #69B1EA 66.66%, #7EBEE9 100%); }
@@ -110,9 +127,16 @@
         .hide-scrollbar { scrollbar-width: none; }
 
         .glass-panel-white { background: rgba(255, 255, 255, 0.15); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); border: 1px solid rgba(255, 255, 255, 0.3); box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1); }
-        .glass-panel-orange { background: rgba(255, 100, 0, 0.75); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); border: 1px solid rgba(255, 255, 255, 0.25); box-shadow: 0 8px 32px rgba(255, 100, 0, 0.25); }
+        
+        /* FIX: 橙色卡片 #ff6000, 70% opacity */
+        .glass-panel-orange { 
+            background: rgba(255, 96, 0, 0.7); 
+            backdrop-filter: blur(8px); 
+            -webkit-backdrop-filter: blur(8px); 
+            border: 1px solid rgba(255, 255, 255, 0.25); 
+            box-shadow: 0 8px 32px rgba(255, 100, 0, 0.25); 
+        }
 
-        /* PWA 弹窗专用的高透白色毛玻璃 */
         .glass-modal { 
             background: rgba(255, 255, 255, 0.85); 
             backdrop-filter: blur(16px); 
@@ -121,10 +145,46 @@
             box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.1); 
         }
         
+        /* Loading Screen Styles */
+        #app-loading {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            /* 背景：使用日间渐变 */
+            background: linear-gradient(to bottom, #3C84D6 0%, #4B97E2 33.33%, #69B1EA 66.66%, #7EBEE9 100%);
+            z-index: 9999;
+            overflow: hidden; 
+            transition: opacity 0.5s ease-out;
+        }
+
+        .plane-fly {
+            position: absolute;
+            /* 速度放慢1倍 (5s) */
+            animation: flyAcross 5s linear infinite;
+        }
+        
         body { -webkit-tap-highlight-color: transparent; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background-color: #f8fafc; }
     </style>
 </head>
 <body class="text-slate-800">
+    
+    <!-- FIX: Updated Loading Screen HTML -->
+    <div id="app-loading">
+        <!-- 下层：飞机动画 (z-0) -->
+        <!-- FIX: 飞机缩小 text-[3rem] -->
+        <div class="plane-fly text-[3rem] z-0 opacity-80 drop-shadow-lg" style="text-shadow: 0 10px 20px rgba(0,0,0,0.1)">
+            ✈️
+        </div>
+
+        <!-- 上层：LOADING 文字 (z-10) -->
+        <div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-10 flex flex-col items-center">
+            <p class="text-white text-lg font-black tracking-[0.5em] animate-pulse drop-shadow-md">LOADING</p>
+            <div class="w-8 h-1 bg-white/50 mt-2 rounded-full"></div>
+        </div>
+    </div>
+
     <div id="root"></div>
 
     <script type="text/babel">
@@ -386,7 +446,7 @@
         const App = () => {
             const [flightTime, setFlightTime] = useState('12:00');
             const [showPicker, setShowPicker] = useState(false);
-            const [version] = useState("V 1.0 (251215-110000) - 126 (Picker Scroll Lock)"); 
+            const [version] = useState("V 1.0 (251216-005200) - 135 (Orange Tweak #2)"); 
             
             const [showInstall, setShowInstall] = useState(false);
             
@@ -399,6 +459,19 @@
             const [result, setResult] = useState(null);
             
             const [timeOfDay, setTimeOfDay] = useState('day');
+
+            // Loading Screen Logic
+            useEffect(() => {
+                const loader = document.getElementById('app-loading');
+                if (loader) {
+                    setTimeout(() => {
+                        loader.style.opacity = '0';
+                        setTimeout(() => {
+                            loader.style.display = 'none';
+                        }, 500);
+                    }, 2500); 
+                }
+            }, []);
 
             useEffect(() => {
                 if (!flightTime) return;
